@@ -1,0 +1,16 @@
+<mat-sidenav-container>
+  <mat-sidenav #sidenav role="navigation">
+    <app-side-nav-list (closeNavbarEmitter)="sidenav.close()"></app-side-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <app-navbar>
+      <button id="navToggleBtn" mat-icon-button (click)="sidenav.toggle()">
+        <mat-icon>menu</mat-icon>
+      </button>
+    </app-navbar>
+    <main>
+      <ng-content></ng-content>
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

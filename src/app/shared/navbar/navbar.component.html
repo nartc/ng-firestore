@@ -1,0 +1,24 @@
+<mat-toolbar color="primary">
+  <div fxHide.gt-xs>
+    <ng-content select="[id=navToggleBtn]"></ng-content>
+  </div>
+  <div>
+    <a [routerLink]="['/']">LOGO</a>
+  </div>
+  <div fxFlex fxLayout fxLayoutAlign="flex-end" fxHide.xs>
+    <ul class="nav-items" fxLayout fxLayoutGap="10px">
+      <li>
+        <a [routerLink]="['/auth/signup']" routerLinkActive="active">Sign Up</a>
+      </li>
+      <li>
+        <a [routerLink]="['/auth/signin']" routerLinkActive="active">Sign In</a>
+      </li>
+      <li>
+        <a [routerLink]="['/training']" routerLinkActive="active">Training</a>
+      </li>
+      <li>
+        <a [routerLink]="['/auth/signin']" routerLinkActive="active">Sign out</a>
+      </li>
+    </ul>
+  </div>
+</mat-toolbar>

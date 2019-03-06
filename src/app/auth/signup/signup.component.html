@@ -1,0 +1,60 @@
+<section class="signup-form">
+  <form #form="ngForm" (ngSubmit)="onSignupFormSubmit(form)">
+    <mat-card>
+      <mat-card-title>Sign Up</mat-card-title>
+      <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="10px">
+        <mat-form-field>
+          <input
+            type="email"
+            matInput
+            placeholder="Your email"
+            name="email"
+            ngModel
+            #emailInput="ngModel"
+            required
+            email
+          />
+          <mat-error *ngIf="emailInput.hasError('required')">Email is required</mat-error>
+          <mat-error *ngIf="!emailInput.hasError('required')">Invalid Email</mat-error>
+        </mat-form-field>
+
+        <mat-form-field hintLabel="Should be at least 6 characters">
+          <input
+            type="password"
+            matInput
+            placeholder="Your password"
+            name="password"
+            ngModel
+            #pwInput="ngModel"
+            required
+            minlength="6"
+          />
+          <mat-hint align="end">{{ pwInput.value?.length }} / 6</mat-hint>
+          <mat-error *ngIf="pwInput.hasError('required')">Password is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field>
+          <input
+            matInput
+            placeholder="Your birthdate"
+            [matDatepicker]="birthdayPicker"
+            [max]="maxDate"
+            ngModel
+            name="birthdate"
+            required
+            #bdayPicker="ngModel"
+          />
+          <mat-datepicker-toggle matSuffix [for]="birthdayPicker"></mat-datepicker-toggle>
+          <mat-datepicker #birthdayPicker touchUi="true"></mat-datepicker>
+          <mat-error *ngIf="bdayPicker.hasError('required')">Birthdate is required</mat-error>
+        </mat-form-field>
+
+        <mat-checkbox ngModel name="isTermsAgreed" required color="primary">Agree to Terms and Conditions</mat-checkbox>
+      </mat-card-content>
+      <mat-card-actions>
+        <button type="submit" mat-button color="primary" [disabled]="form.invalid">Sign up</button>
+        <a mat-button [routerLink]="['/auth/signin']">Have an account? Sign in</a>
+      </mat-card-actions>
+    </mat-card>
+  </form>
+</section>

@@ -1,0 +1,25 @@
+<section class="signin-form">
+  <form [formGroup]="signinForm" (ngSubmit)="onSigninFormSubmit()">
+    <mat-card>
+      <mat-card-title>Sign In</mat-card-title>
+      <mat-card-content fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="10px">
+        <mat-form-field>
+          <input type="email" matInput placeholder="Your email *" formControlName="email" />
+          <mat-error *ngIf="emailControl.hasError('required')">Email is required</mat-error>
+          <mat-error *ngIf="!emailControl.hasError('required')">Invalid Email</mat-error>
+        </mat-form-field>
+
+        <mat-form-field>
+          <input type="password" matInput placeholder="Your password *" formControlName="password" />
+          <mat-error *ngIf="passwordControl.hasError('required')">Password is required</mat-error>
+        </mat-form-field>
+
+        <mat-checkbox formControlName="isRemembered" color="primary">Remember me</mat-checkbox>
+      </mat-card-content>
+      <mat-card-actions>
+        <button type="submit" mat-raised-button color="primary" [disabled]="signinForm.invalid">Sign in</button>
+        <a mat-button [routerLink]="['/auth/signup']">Sign up now</a>
+      </mat-card-actions>
+    </mat-card>
+  </form>
+</section>
