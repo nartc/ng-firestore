@@ -3,14 +3,13 @@
     <mat-card-title fxLayoutAlign="center">Time to start a workout!</mat-card-title>
     <mat-card-content fxLayoutAlign="center">
       <mat-form-field>
-        <mat-select placeholder="Type of training">
-          <mat-option value="Type 1">Type 1</mat-option>
-          <mat-option value="Type 2">Type 2</mat-option>
+        <mat-select placeholder="Type of training" (selectionChange)="onExerciseSelected($event)">
+          <mat-option *ngFor="let exercise of exercises$ | async" [value]="exercise.id">{{exercise.name}}</mat-option>
         </mat-select>
       </mat-form-field>
     </mat-card-content>
     <mat-card-actions fxLayoutAlign="center">
-      <button mat-button type="submit" (click)="startTraining.emit()">Start</button>
+      <button mat-button type="submit" (click)="onStartTraining()" [disabled]="!selectedId">Start</button>
     </mat-card-actions>
   </mat-card>
 </section>

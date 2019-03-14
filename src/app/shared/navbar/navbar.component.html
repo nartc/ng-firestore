@@ -8,16 +8,16 @@
   <div fxFlex fxLayout fxLayoutAlign="flex-end" fxHide.xs>
     <ul class="nav-items" fxLayout fxLayoutGap="10px">
       <li>
-        <a [routerLink]="['/auth/signup']" routerLinkActive="active">Sign Up</a>
+        <a [routerLink]="['/auth/signup']" routerLinkActive="active" *ngIf="!isAuthenticated">Sign Up</a>
       </li>
       <li>
-        <a [routerLink]="['/auth/signin']" routerLinkActive="active">Sign In</a>
+        <a [routerLink]="['/auth/signin']" routerLinkActive="active" *ngIf="!isAuthenticated">Sign In</a>
       </li>
       <li>
-        <a [routerLink]="['/training']" routerLinkActive="active">Training</a>
+        <a [routerLink]="['/training']" routerLinkActive="active" *ngIf="isAuthenticated">Training</a>
       </li>
       <li>
-        <a [routerLink]="['/auth/signin']" routerLinkActive="active">Sign out</a>
+        <a (click)="logout()" *ngIf="isAuthenticated">Sign out</a>
       </li>
     </ul>
   </div>

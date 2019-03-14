@@ -1,12 +1,44 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { MatPaginator, MatSort, MatTableDataSource } from '@angular/material';
+import { fromEvent } from 'rxjs/internal/observable/fromEvent';
+import { debounceTime, map, takeUntil } from 'rxjs/operators';
+import { DestroyableComponent } from '../../shared/common/destroyable';
+import { Exercise } from '../models/exercise.model';
+import { TrainingService } from '../services/training.service';
 
 @Component({
   selector: 'app-past-training',
   templateUrl: './past-training.component.html',
-  styleUrls: ['./past-training.component.scss'],
+  styleUrls: [ './past-training.component.scss' ],
 })
-export class PastTrainingComponent implements OnInit {
-  constructor() {}
+export class PastTrainingComponent extends DestroyableComponent implements OnInit, AfterViewInit {
+  displayedColumns: string[] = [ 'date', 'name', 'duration', 'calories', 'state' ];
+  dataSource: MatTableDataSource<Exercise>;
 
-  ngOnInit() {}
+  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild('filterInput') filterInput: ElementRef<HTMLInputElement>;
+
+  constructor(private trainingService: TrainingService) {
+    super();
+  }
+
+  ngOnInit() {
+    this.trainingService.exercises$.pipe(takeUntil(this.destroy$)).subscribe(exercises => {
+      this.dataSource = new MatTableDataSource<Exercise>(exercises);
+      this.dataSource.sort = this.sort;
+      this.dataSource.paginator = this.paginator;
+    });
+  }
+
+  ngAfterViewInit() {
+    fromEvent(this.filterInput.nativeElement, 'keyup')
+      .pipe(
+        debounceTime(300),
+        map(event => event.target['value']),
+        takeUntil(this.destroy$)
+      ).subscribe((searchString: string) => {
+      this.dataSource.filter = searchString.trim().toLowerCase();
+    });
+  }
 }

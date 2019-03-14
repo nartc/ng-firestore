@@ -10,11 +10,15 @@ import {
   MatInputModule,
   MatListModule,
   MatNativeDateModule,
+  MatPaginatorModule,
   MatProgressSpinnerModule,
   MatSelectModule,
   MatSidenavModule,
+  MatSlideToggleModule,
+  MatSortModule,
+  MatTableModule,
   MatTabsModule,
-  MatToolbarModule,
+  MatToolbarModule
 } from '@angular/material';
 
 const modules = [
@@ -33,10 +37,15 @@ const modules = [
   MatSelectModule,
   MatProgressSpinnerModule,
   MatDialogModule,
+  MatTableModule,
+  MatSortModule,
+  MatPaginatorModule,
+  MatSlideToggleModule
 ];
 
 @NgModule({
-  imports: [...modules],
-  exports: [...modules],
+  imports: [ ...modules ],
+  exports: [ ...modules ],
 })
-export class MaterialModule {}
+export class MaterialModule {
+}
