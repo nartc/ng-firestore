@@ -1,0 +1,11 @@
+@import '~@angular/material/theming';
+
+@include mat-core();
+
+$ng-firestore-primary: mat-palette($mat-red);
+$ng-firestore-accent: mat-palette($mat-pink, A200, A100, A400);
+$ng-firestore-warn: mat-palette($mat-amber);
+
+$ng-firestore-theme: mat-light-theme($ng-firestore-primary, $ng-firestore-accent, $ng-firestore-warn);
+
+@include angular-material-theme($ng-firestore-theme);
