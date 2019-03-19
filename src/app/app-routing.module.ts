@@ -6,7 +6,7 @@ import { WelcomeComponent } from './shared/welcome/welcome.component';
 const routes: Routes = [
   { path: '', component: WelcomeComponent },
   { path: 'auth', loadChildren: './auth/auth.module#AuthModule' },
-  { path: 'training', loadChildren: './training/training.module#TrainingModule', canActivate: [ AuthGuard ] },
+  { path: 'training', loadChildren: './training/training.module#TrainingModule', canLoad: [ AuthGuard ] },
 ];
 
 @NgModule({

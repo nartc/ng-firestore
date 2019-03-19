@@ -9,4 +9,13 @@
       width: 100%;
     }
   }
+
+  & .google-signin,
+  & .signup {
+    margin: 0;
+  }
+
+  & .google-signin {
+    margin-top: 10px;
+  }
 }

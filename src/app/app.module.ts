@@ -1,7 +1,10 @@
+import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { AngularFireModule } from '@angular/fire';
+import { AngularFireAuthModule } from '@angular/fire/auth';
 import { AngularFirestoreModule, FirestoreSettingsToken } from '@angular/fire/firestore';
-import { BrowserModule } from '@angular/platform-browser';
+import { MatIconRegistry } from '@angular/material';
+import { BrowserModule, DomSanitizer } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { environment } from '../environments/environment';
 
@@ -19,10 +22,15 @@ import { SharedModule } from './shared/shared.module';
     MaterialModule,
     SharedModule,
     AngularFireModule.initializeApp(environment.firebase),
-    AngularFirestoreModule
+    AngularFirestoreModule,
+    AngularFireAuthModule,
+    HttpClientModule
   ],
   providers: [ { provide: FirestoreSettingsToken, useValue: {} } ],
   bootstrap: [ AppComponent ],
 })
 export class AppModule {
+  constructor(private iconRegistry: MatIconRegistry, private domSanitizer: DomSanitizer) {
+    iconRegistry.addSvgIcon('google', domSanitizer.bypassSecurityTrustResourceUrl('../assets/icon/google.svg'));
+  }
 }

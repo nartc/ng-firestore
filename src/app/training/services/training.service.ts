@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
+import { UiService } from '../../shared/services/ui.service';
 import { Exercise } from '../models/exercise.model';
 
 const AVAILABLE_EXERCISES_KEY = 'availableExercises';
@@ -18,18 +19,24 @@ export class TrainingService {
   private _runningExercise: Exercise;
   private _runningExerciseSubject: BehaviorSubject<Exercise> = new BehaviorSubject(null);
 
-  constructor(private firestore: AngularFirestore) {
+  constructor(private firestore: AngularFirestore,
+              private uiService: UiService) {
     this.availableExercisesDb = firestore.collection(AVAILABLE_EXERCISES_KEY);
     this.exercisesDb = firestore.collection(EXERCISES_KEY);
   }
 
   get availableExercises$(): Observable<Exercise[]> {
+    this.uiService.toggleLoader();
     return this.availableExercisesDb.snapshotChanges()
-      .pipe(map(data => data.map(({ payload: { doc } }) => {
-        const exercise = doc.data();
-        const id = doc.id;
-        return { id, ...exercise };
-      })));
+      .pipe(
+        map(data => data.map(({ payload: { doc } }) => {
+          const exercise = doc.data();
+          const id = doc.id;
+          return { id, ...exercise };
+        })),
+        tap(_ => {
+          this.uiService.toggleLoader(false);
+        }));
   }
 
   get runningExercise$(): Observable<Exercise> {
@@ -37,13 +44,18 @@ export class TrainingService {
   }
 
   get exercises$(): Observable<Exercise[]> {
+    this.uiService.toggleLoader();
     return this.exercisesDb.snapshotChanges()
-      .pipe(map(data => data.map(({ payload: { doc } }) => {
-        const exercise = doc.data();
-        exercise.date = (exercise.date as any).toDate();
-        const id = doc.id;
-        return { id, ...exercise };
-      })));
+      .pipe(
+        map(data => data.map(({ payload: { doc } }) => {
+          const exercise = doc.data();
+          exercise.date = (exercise.date as any).toDate();
+          const id = doc.id;
+          return { id, ...exercise };
+        })),
+        tap(_ => {
+          this.uiService.toggleLoader(false);
+        }));
   }
 
   startTraining(id: string) {
