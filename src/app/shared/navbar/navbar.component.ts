@@ -1,13 +1,12 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { takeUntil } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/services/auth.service';
-import { Observable, Subject } from 'rxjs';
-import { startWith, takeUntil } from 'rxjs/operators';
 import { DestroyableComponent } from '../common/destroyable';
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.scss'],
+  styleUrls: [ './navbar.component.scss' ],
 })
 export class NavbarComponent extends DestroyableComponent implements OnInit {
   isAuthenticated: boolean;

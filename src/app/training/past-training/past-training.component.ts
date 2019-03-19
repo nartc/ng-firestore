@@ -1,10 +1,13 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator, MatSort, MatTableDataSource } from '@angular/material';
+import { Store } from '@ngrx/store';
 import { fromEvent } from 'rxjs/internal/observable/fromEvent';
 import { debounceTime, map, takeUntil } from 'rxjs/operators';
 import { DestroyableComponent } from '../../shared/common/destroyable';
 import { Exercise } from '../models/exercise.model';
 import { TrainingService } from '../services/training.service';
+
+import * as fromTraining from '../store';
 
 @Component({
   selector: 'app-past-training',
@@ -19,12 +22,15 @@ export class PastTrainingComponent extends DestroyableComponent implements OnIni
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild('filterInput') filterInput: ElementRef<HTMLInputElement>;
 
-  constructor(private trainingService: TrainingService) {
+  constructor(private trainingService: TrainingService,
+              private store: Store<fromTraining.State>) {
     super();
   }
 
   ngOnInit() {
-    this.trainingService.exercises$.pipe(takeUntil(this.destroy$)).subscribe(exercises => {
+    this.trainingService.fetchExercises();
+    this.store.select(fromTraining.getPastExercisesSelector)
+      .pipe(takeUntil(this.destroy$)).subscribe(exercises => {
       this.dataSource = new MatTableDataSource<Exercise>(exercises);
       this.dataSource.sort = this.sort;
       this.dataSource.paginator = this.paginator;

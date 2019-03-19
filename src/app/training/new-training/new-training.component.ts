@@ -1,8 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSelectChange } from '@angular/material';
+import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/internal/Observable';
+
+import * as fromRoot from '../../store';
 import { Exercise } from '../models/exercise.model';
 import { TrainingService } from '../services/training.service';
+import * as fromTraining from '../store';
 
 @Component({
   selector: 'app-new-training',
@@ -11,13 +15,17 @@ import { TrainingService } from '../services/training.service';
 })
 export class NewTrainingComponent implements OnInit {
   exercises$: Observable<Exercise[]>;
+  isLoading$: Observable<boolean>;
   selectedId: string;
 
-  constructor(private trainingService: TrainingService) {
+  constructor(private trainingService: TrainingService,
+              private store: Store<fromTraining.State>) {
   }
 
   ngOnInit() {
-    this.exercises$ = this.trainingService.availableExercises$;
+    this.trainingService.fetchAvailableExercises();
+    this.exercises$ = this.store.select(fromTraining.getAvailableExercisesSelector);
+    this.isLoading$ = this.store.select(fromRoot.isLoadingSelector);
   }
 
   onExerciseSelected(change: MatSelectChange) {

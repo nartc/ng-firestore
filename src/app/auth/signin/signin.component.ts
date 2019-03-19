@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
 import { takeUntil } from 'rxjs/operators';
 import { DestroyableComponent } from '../../shared/common/destroyable';
-import { UiService } from '../../shared/services/ui.service';
+
+import * as fromRoot from '../../store';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -16,13 +18,13 @@ export class SigninComponent extends DestroyableComponent implements OnInit {
 
   constructor(private readonly formBuilder: FormBuilder,
               private authService: AuthService,
-              private uiService: UiService) {
+              private store: Store<fromRoot.AppState>) {
     super();
   }
 
   ngOnInit() {
     this.initForm();
-    this.uiService.loading$.pipe(takeUntil(this.destroy$))
+    this.store.select(fromRoot.isLoadingSelector).pipe(takeUntil(this.destroy$))
       .subscribe(isLoading => {
         this.isLoading = isLoading;
       });

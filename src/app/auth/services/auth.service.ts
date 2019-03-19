@@ -1,16 +1,18 @@
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { auth } from 'firebase/app';
 import { fromPromise } from 'rxjs/internal-compatibility';
-import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { Observable } from 'rxjs/internal/Observable';
 import { EMPTY } from 'rxjs/internal/observable/empty';
 import { of } from 'rxjs/internal/observable/of';
-import { catchError, filter, map, tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { UiService } from '../../shared/services/ui.service';
+import * as fromShared from '../../shared/store';
+import * as fromRoot from '../../store';
 import { AuthData } from '../models/auth-data';
-import { User } from '../models/user.model';
+import * as fromAuth from '../store';
 import UserCredential = firebase.auth.UserCredential;
 import FirebaseUser = firebase.User;
 
@@ -18,12 +20,10 @@ import FirebaseUser = firebase.User;
   providedIn: 'root',
 })
 export class AuthService {
-  private _user: User;
-  private userSubject: BehaviorSubject<User> = new BehaviorSubject<User>(null);
-
   constructor(private router: Router,
               private afAuth: AngularFireAuth,
-              private uiService: UiService) {
+              private uiService: UiService,
+              private store: Store<fromRoot.AppState>) {
   }
 
   get isAuthenticatedListener$() {
@@ -31,12 +31,10 @@ export class AuthService {
       catchError(_ => of(null)),
       tap((value: FirebaseUser) => {
         if (value) {
-          this._user = { ...value } as any;
-          this.emitUserData();
+          this.store.dispatch(new fromAuth.Authenticated());
           this.goToTraining();
         } else {
-          this._user = null;
-          this.emitUserData();
+          this.store.dispatch(new fromAuth.Unauthenticated());
           this.router.navigate([ '/auth/signin' ]);
         }
       })
@@ -44,16 +42,16 @@ export class AuthService {
   }
 
   registerUser(data: AuthData) {
-    this.uiService.toggleLoader();
+    this.store.dispatch(new fromShared.StartLoading());
     return fromPromise(this.afAuth.auth.createUserWithEmailAndPassword(data.email, data.password))
       .pipe(
         tap(_ => {
-          this.uiService.toggleLoader(false);
+          this.store.dispatch(new fromShared.StopLoading());
           this.uiService.openSnackbar('Register successfully');
           this.router.navigate([ '/auth/signin' ]);
         }),
         catchError(err => {
-          this.uiService.toggleLoader(false);
+          this.store.dispatch(new fromShared.StopLoading());
           this.uiService.openSnackbar(err.message);
           return EMPTY;
         }));
@@ -64,17 +62,17 @@ export class AuthService {
   }
 
   login(data: AuthData): Observable<UserCredential> {
-    this.uiService.toggleLoader();
+    this.store.dispatch(new fromShared.StartLoading());
     return fromPromise(this.afAuth.auth.signInWithEmailAndPassword(data.email, data.password))
       .pipe(
         tap(value => {
-          this.uiService.toggleLoader(false);
-          this._user = { ...value.user } as any;
-          this.emitUserData();
+          this.store.dispatch(new fromShared.StopLoading());
+          this.store.dispatch(new fromAuth.Authenticated());
           this.goToTraining();
         }),
         catchError(err => {
-          this.uiService.toggleLoader(false);
+          this.store.dispatch(new fromShared.StopLoading());
+          this.store.dispatch(new fromAuth.Unauthenticated());
           this.uiService.openSnackbar(err.message);
           return EMPTY;
         }));
@@ -83,8 +81,7 @@ export class AuthService {
   logout() {
     this.afAuth.auth.signOut()
       .then(_ => {
-        this._user = null;
-        this.emitUserData();
+        this.store.dispatch(new fromAuth.Unauthenticated());
         this.router.navigate([ '/auth/signin' ]);
       });
   }
@@ -93,15 +90,7 @@ export class AuthService {
     this.router.navigate([ '/training' ]);
   }
 
-  private emitUserData() {
-    this.userSubject.next(this._user);
-  }
-
-  get user$(): Observable<User> {
-    return this.userSubject.asObservable().pipe(filter(data => !!data));
-  }
-
   get isAuthenticated$(): Observable<boolean> {
-    return this.userSubject.asObservable().pipe(map(data => data !== null));
+    return this.store.select<boolean>(fromRoot.isAuthenticatedSelector);
   }
 }

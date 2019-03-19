@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
-import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
+import { Store } from '@ngrx/store';
+import { fromPromise } from 'rxjs/internal-compatibility';
 import { Observable } from 'rxjs/internal/Observable';
-import { map, tap } from 'rxjs/operators';
-import { UiService } from '../../shared/services/ui.service';
+import { map, mergeMap, take } from 'rxjs/operators';
+import * as fromShared from '../../shared/store';
 import { Exercise } from '../models/exercise.model';
+import * as fromTraining from '../store';
 
 const AVAILABLE_EXERCISES_KEY = 'availableExercises';
 const EXERCISES_KEY = 'exercises';
@@ -16,78 +18,91 @@ export class TrainingService {
   private readonly availableExercisesDb: AngularFirestoreCollection<Exercise>;
   private readonly exercisesDb: AngularFirestoreCollection<Exercise>;
 
-  private _runningExercise: Exercise;
-  private _runningExerciseSubject: BehaviorSubject<Exercise> = new BehaviorSubject(null);
-
   constructor(private firestore: AngularFirestore,
-              private uiService: UiService) {
+              private store: Store<fromTraining.State>) {
     this.availableExercisesDb = firestore.collection(AVAILABLE_EXERCISES_KEY);
     this.exercisesDb = firestore.collection(EXERCISES_KEY);
   }
 
-  get availableExercises$(): Observable<Exercise[]> {
-    this.uiService.toggleLoader();
-    return this.availableExercisesDb.snapshotChanges()
+  fetchAvailableExercises(): void {
+    this.store.dispatch(new fromShared.StartLoading());
+    this.availableExercisesDb.snapshotChanges()
       .pipe(
         map(data => data.map(({ payload: { doc } }) => {
           const exercise = doc.data();
           const id = doc.id;
           return { id, ...exercise };
-        })),
-        tap(_ => {
-          this.uiService.toggleLoader(false);
-        }));
+        })))
+      .subscribe(exercises => {
+        this.store.dispatch(new fromTraining.AvailableExercisesLoaded(exercises));
+        this.store.dispatch(new fromShared.StopLoading());
+      });
   }
 
   get runningExercise$(): Observable<Exercise> {
-    return this._runningExerciseSubject.asObservable();
+    return this.store.select<Exercise>(fromTraining.getRunningExerciseSelector);
   }
 
-  get exercises$(): Observable<Exercise[]> {
-    this.uiService.toggleLoader();
-    return this.exercisesDb.snapshotChanges()
+  fetchExercises(): void {
+    this.store.dispatch(new fromShared.StartLoading());
+    this.exercisesDb.snapshotChanges()
       .pipe(
         map(data => data.map(({ payload: { doc } }) => {
           const exercise = doc.data();
           exercise.date = (exercise.date as any).toDate();
           const id = doc.id;
           return { id, ...exercise };
-        })),
-        tap(_ => {
-          this.uiService.toggleLoader(false);
-        }));
+        })))
+      .subscribe(exercises => {
+        this.store.dispatch(new fromTraining.PastExercisesLoaded(exercises));
+        this.store.dispatch(new fromShared.StopLoading());
+      });
   }
 
   startTraining(id: string) {
     this.availableExercisesDb.ref.doc(id).get().then(doc => {
       const exercise = doc.data();
-      this._runningExercise = { id, ...exercise } as Exercise;
-      this._runningExerciseSubject.next({ ...this._runningExercise });
+      this.store.dispatch(new fromTraining.StartExercise({ id, ...exercise } as Exercise));
     });
   }
 
   completeTraining() {
-    const { id, ...exercise } = this._runningExercise;
-
-    this.exercisesDb.add({ ...exercise, date: new Date(Date.now()), state: 'completed' } as Exercise)
-      .then(_ => {
-        this._runningExercise = null;
-        this._runningExerciseSubject.next(this._runningExercise);
-      });
+    this.runningExercise$
+      .pipe(
+        take(1),
+        map(runningExercise => {
+          const { id, ...exercise } = runningExercise;
+          return exercise;
+        }),
+        mergeMap(exercise => fromPromise(this.exercisesDb.add({
+          ...exercise,
+          date: new Date(Date.now()),
+          state: 'completed'
+        } as Exercise)))
+      ).subscribe(_ => {
+      this.store.dispatch(new fromTraining.StopExercise());
+    });
   }
 
   cancelTraining(progress: number) {
-    const { id, ...exercise } = this._runningExercise;
-    this.exercisesDb.add({
-      ...exercise,
-      date: new Date(Date.now()),
-      state: 'cancelled',
-      duration: exercise.duration * (progress / 100),
-      calories: exercise.calories * (progress / 100)
-    } as Exercise)
-      .then(_ => {
-        this._runningExercise = null;
-        this._runningExerciseSubject.next(this._runningExercise);
+    this.runningExercise$
+      .pipe(
+        take(1),
+        map(runningExercise => {
+          console.log(runningExercise);
+          const { id, ...exercise } = runningExercise;
+          return exercise;
+        }),
+        mergeMap(exercise => fromPromise(this.exercisesDb.add({
+          ...exercise,
+          date: new Date(Date.now()),
+          state: 'cancelled',
+          duration: exercise.duration * (progress / 100),
+          calories: exercise.calories * (progress / 100)
+        } as Exercise)))
+      )
+      .subscribe(_ => {
+        this.store.dispatch(new fromTraining.StopExercise());
       });
   }
 }

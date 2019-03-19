@@ -6,12 +6,14 @@ import { AngularFirestoreModule, FirestoreSettingsToken } from '@angular/fire/fi
 import { MatIconRegistry } from '@angular/material';
 import { BrowserModule, DomSanitizer } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { StoreModule } from '@ngrx/store';
 import { environment } from '../environments/environment';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { MaterialModule } from './material.module';
 import { SharedModule } from './shared/shared.module';
+import { rootReducers } from './store';
 
 @NgModule({
   declarations: [ AppComponent ],
@@ -24,7 +26,8 @@ import { SharedModule } from './shared/shared.module';
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
     AngularFireAuthModule,
-    HttpClientModule
+    HttpClientModule,
+    StoreModule.forRoot(rootReducers)
   ],
   providers: [ { provide: FirestoreSettingsToken, useValue: {} } ],
   bootstrap: [ AppComponent ],

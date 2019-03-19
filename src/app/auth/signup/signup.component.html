@@ -51,10 +51,11 @@
 
         <mat-checkbox ngModel name="isTermsAgreed" required color="primary">Agree to Terms and Conditions</mat-checkbox>
       </mat-card-content>
-      <mat-card-actions>
+      <mat-card-actions *ngIf="!(isLoading$ | async)">
         <button type="submit" mat-button color="primary" [disabled]="form.invalid">Sign up</button>
         <a mat-button [routerLink]="['/auth/signin']">Have an account? Sign in</a>
       </mat-card-actions>
+      <mat-spinner *ngIf="isLoading$ | async" fxFlexAlign="center"></mat-spinner>
     </mat-card>
   </form>
 </section>
